@@ -1,1 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Run a Brainoware-style reservoir computing experiment in your browser: simulated neurons, a trained readout, and the real Japanese Vowels speaker dataset.">
+<title>Brainoware Reservoir Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
 
+<header class="bar">
+  <a class="brand" href="#top"><i></i>Brainoware Reservoir Lab</a>
+  <nav aria-label="Sections">
+    <a href="#terminal">Terminal</a><a href="#results">Results</a><a href="#inspector">Inspector</a><a href="#how">How it works</a><a href="#repo">Run it yourself</a>
+  </nav>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="eyebrow">TKS Build 1 · Biological computing</div>
+  <h1>A brain-organoid experiment, <em>rebuilt in your browser.</em></h1>
+  <p>In 2023 a team grew a brain organoid on a chip and used it to recognise speakers. I rebuilt the computing method with simulated neurons. This page runs that experiment live, on the real dataset, on your own device.</p>
+</section>
+
+<section id="terminal" aria-label="Experiment terminal">
+  <div class="term">
+    <div class="term-head">
+      <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="title">reservoir-lab: ~/brainoware-build</div>
+      <span id="badge" class="badge warn">data: not loaded</span>
+    </div>
+    <div class="term-body" id="out" role="log" aria-label="Terminal output" tabindex="0"></div>
+    <div class="prompt-row">
+      <label for="cmd">reservoir@lab:~$</label>
+      <input id="cmd" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type a command, or type help">
+    </div>
+    <div class="chips" id="chips">
+      <button class="chip" data-cmd="load" type="button">Load data</button>
+      <button class="chip" data-cmd="baseline" type="button">baseline</button>
+      <button class="chip primary" data-cmd="run" type="button">run experiment</button>
+      <button class="chip" data-cmd="run quick" type="button">run quick</button>
+      <button class="chip" data-cmd="noise" type="button">noise test</button>
+      <button class="chip" data-cmd="help" type="button">help</button>
+      <button class="chip stop" data-cmd="stop" type="button">stop</button>
+    </div>
+  </div>
+  <p class="hint">Everything runs in your browser; nothing is uploaded. Try <code>set radius 0.5</code> then <code>run</code> to change one setting and rerun.</p>
+  <input id="file" type="file" multiple accept=".train,.test,.zip,.txt" hidden>
+</section>
+
+<section class="block" id="results">
+  <div class="eyebrow">Live results</div>
+  <h2>What your run found</h2>
+  <div class="banner" id="synthBanner" role="status">You are looking at SYNTHETIC data, made up only to check that the pipeline runs. Do not report these numbers.</div>
+  <div class="stats" id="stats"></div>
+  <div class="grid2">
+    <div class="panel"><h3>Accuracy vs reservoir size</h3><div id="chart"></div></div>
+    <div class="panel"><h3>Accuracy as noise grows <span class="muted" style="font-weight:400">(noise test)</span></h3><div id="nchart"></div></div>
+  </div>
+  <div class="panel tablewrap"><table><thead><tr><th>Setup</th><th>Test accuracy</th><th>Spread over seeds</th><th>Seeds</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="row-actions"><button class="btn" id="dl" type="button">Download CSV</button><span class="muted" style="font-size:.88rem" id="cfgline"></span></div>
+  <p class="muted" style="font-size:.9rem">These numbers come from this browser run. My article’s numbers come from the Python script in <code>experiment/</code>. Both use the same method but draw different random reservoirs, so expect similar results, not identical ones.</p>
+</section>
+
+<section class="block insp" id="inspector">
+  <div class="eyebrow">Inspector</div>
+  <h2>See what the reservoir does to a recording</h2>
+  <p>Pick two recordings. Each coloured row is one simulated neuron over time; blue means pushed up, coral means pushed down. Different speakers leave different patterns, and the readout learns to tell them apart.</p>
+  <div class="panel insp-controls">
+    <div class="ctl"><label for="inN">Neurons <output id="inNo"></output></label><input id="inN" type="range" min="10" max="300" step="10" value="80"></div>
+    <div class="ctl"><button class="btn" id="inSeed" type="button">New random reservoir</button></div>
+    <div class="ctl" id="inSource" style="font-size:.85rem;color:var(--muted)"></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>Recording A</h3>
+      <div class="insp-controls"><div class="ctl"><label for="aS">Speaker</label><select id="aS"></select></div><div class="ctl"><label for="aR">Recording <output id="aRo"></output></label><input id="aR" type="range" min="1" max="30" value="1"></div></div>
+      <div class="cap" id="aCap"></div><div class="cap">the 12 sound numbers over time</div><canvas id="aIn"></canvas>
+      <div class="cap">reservoir activity, one row per neuron</div><canvas id="aMap"></canvas>
+      <div class="cap">average state, one cell per neuron</div><canvas id="aAvg"></canvas></div>
+    <div class="panel"><h3>Recording B</h3>
+      <div class="insp-controls"><div class="ctl"><label for="bS">Speaker</label><select id="bS"></select></div><div class="ctl"><label for="bR">Recording <output id="bRo"></output></label><input id="bR" type="range" min="1" max="30" value="1"></div></div>
+      <div class="cap" id="bCap"></div><div class="cap">the 12 sound numbers over time</div><canvas id="bIn"></canvas>
+      <div class="cap">reservoir activity, one row per neuron</div><canvas id="bMap"></canvas>
+      <div class="cap">average state, one cell per neuron</div><canvas id="bAvg"></canvas></div>
+  </div>
+</section>
+
+<section class="block" id="how">
+  <div class="eyebrow">How it works</div>
+  <h2>Four boxes, one equation</h2>
+  <div class="pipe">
+    <div class="node"><b>Sound in</b><span>A recording stored as 12 numbers per moment in time.</span></div>
+    <div class="node fixed"><small>Never trained</small><b>Reservoir</b><span>A tangled web of neurons. In Brainoware: a living organoid. Here: simulated.</span></div>
+    <div class="node train"><small>Trained</small><b>Readout</b><span>A ridge classifier that learns which pattern means which speaker.</span></div>
+    <div class="node"><b>Speaker guess</b><span>One of 9 speakers.</span></div>
+  </div>
+  <pre>x = (1 - leak) * x + leak * tanh(W_in @ u + W @ x)</pre>
+  <p class="muted"><code>x</code> is every neuron’s activity, <code>u</code> is the sound at that moment, <code>W_in</code> is how sound pushes on neurons, and <code>W</code> is how neurons push on each other. Both matrices are random and never change.</p>
+  <div>
+    <details><summary>1. Load and scale the data</summary><p>UCI Japanese Vowels: 9 speakers say the same sound. 270 recordings train the readout; 370 test it. Every channel is rescaled to between -1 and 1 using only training data, so the test set cannot leak in.</p></details>
+    <details><summary>2. Build a random reservoir</summary><p>10% of neurons connect to each other. The connection matrix is rescaled so its spectral radius is 0.9, which keeps activity from exploding. A seed decides which random reservoir you get. If a tiny reservoir comes out with no connections, it is redrawn.</p></details>
+    <details><summary>3. Summarise each recording</summary><p>Recordings have different lengths, so each is summarised as the average reservoir state plus the final state.</p></details>
+    <details><summary>4. Train only the readout</summary><p>A ridge classifier learns from the 270 training summaries. It picks its own regularisation strength by leave-one-out error on training data only. This is the only trained part.</p></details>
+    <details><summary>5. Compare with a baseline</summary><p>The same readout on the raw sound numbers, with no reservoir. If the reservoir does not beat it, it is not adding anything.</p></details>
+  </div>
+  <div class="panel"><h3>What this does not show</h3>
+    <p class="muted" style="margin-top:8px">No living neurons and no electrode array: the reservoir is simulated and fixed. A different dataset from the paper’s 240 clips from eight speakers, so these accuracies cannot be compared with Brainoware’s ~78%. One dataset, one task, one test split. What I rebuilt is the method, not the result.</p></div>
+</section>
+
+<section class="block" id="repo">
+  <div class="eyebrow">Run it yourself</div>
+  <h2>Everything is in this repo</h2>
+<div class="panel"><div class="tree">brainoware-reservoir-lab/
+├─ index.html          <em>this page</em>
+├─ css/style.css
+├─ js/
+│  ├─ core.js          <em>the experiment: reservoir, readout, tests</em>
+│  ├─ worker.js        <em>runs it off the main thread</em>
+│  └─ app.js           <em>terminal, charts, inspector</em>
+├─ data/               <em>put ae.train and ae.test here</em>
+└─ experiment/
+   ├─ reservoir_vowels.py   <em>the original Python version</em>
+   └─ requirements.txt</div></div>
+  <pre>python reservoir_vowels.py --noise      # Python version (in experiment/)
+python -m http.server                  # then open http://localhost:8000</pre>
+</section>
+</main>
+
+<footer>
+  <p>Sources: Cai et al. (2023), <a href="https://doi.org/10.1038/s41928-023-01069-w" target="_blank" rel="noopener">Brain organoid reservoir computing for artificial intelligence</a>, Nature Electronics · Lukoševičius &amp; Jaeger (2009), Reservoir computing approaches to recurrent neural network training · Dataset: <a href="https://doi.org/10.24432/C5NS47" target="_blank" rel="noopener">Japanese Vowels</a>, UCI Machine Learning Repository. By Moksha Chaudhari, Grade 11, Sinclair Secondary.</p>
+</footer>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
