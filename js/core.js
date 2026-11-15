@@ -244,9 +244,11 @@
     var Fc = Ftr.map(function (f) { var o = new Float64Array(d); for (var j2 = 0; j2 < d; j2++) o[j2] = f[j2] - mean[j2]; return o; });
     var G = []; for (i = 0; i < m; i++) G.push(new Float64Array(m));
     for (i = 0; i < m; i++) for (j = i; j < m; j++) { var s = 0, a = Fc[i], b = Fc[j]; for (t = 0; t < d; t++) s += a[t] * b[t]; G[i][j] = s; G[j][i] = s; }
-    var Y = [], ybar = new Float64Array(K);
-    for (i = 0; i < m; i++) { var row = new Float64Array(K); for (k = 0; k < K; k++) { row[k] = ytr[i] === k ? 1 : -1; ybar[k] += row[k] / m; } Y.push(row); }
-    for (i = 0; i < m; i++) for (k = 0; k < K; k++) Y[i][k] -= ybar[k];
+    var Y = [];
+    for (i = 0; i < m; i++) { var row = new Float64Array(K); for (k = 0; k < K; k++) row[k] = ytr[i] === k ? 1 : -1; Y.push(row); }
+    // Intercept handling (matches scikit-learn's RidgeClassifierCV): add a constant column, i.e. +1 on every kernel entry.
+    // Without it the centred kernel has an all-zero direction that makes leave-one-out always pick the smallest alpha.
+    for (i = 0; i < m; i++) for (j = 0; j < m; j++) G[i][j] += 1;
     var eg = eigSym(G), lam = eg.values, U = eg.vectors;
     var UtY = []; for (j = 0; j < m; j++) { var ro = new Float64Array(K); for (i = 0; i < m; i++) for (k = 0; k < K; k++) ro[k] += U[i][j] * Y[i][k]; UtY.push(ro); }
     var bestA = ALPHAS[0], bestE = Infinity, bestC = null;
@@ -264,8 +266,8 @@
     var correct = 0, z = new Float64Array(d);
     for (i = 0; i < Fte.length; i++) {
       for (j = 0; j < d; j++) z[j] = Fte[i][j] - mean[j];
-      var sc = Float64Array.from(ybar);
-      for (t = 0; t < m; t++) { var dot = 0, ft = Fc[t]; for (j = 0; j < d; j++) dot += z[j] * ft[j]; for (k = 0; k < K; k++) sc[k] += bestC[t][k] * dot; }
+      var sc = new Float64Array(K);
+      for (t = 0; t < m; t++) { var dot = 1, ft = Fc[t]; for (j = 0; j < d; j++) dot += z[j] * ft[j]; for (k = 0; k < K; k++) sc[k] += bestC[t][k] * dot; }
       var arg = 0; for (k = 1; k < K; k++) if (sc[k] > sc[arg]) arg = k;
       if (arg === yte[i]) correct++;
     }
