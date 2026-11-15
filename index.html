@@ -115,18 +115,20 @@
 <section class="block" id="repo">
   <div class="eyebrow">Run it yourself</div>
   <h2>Everything is in this repo</h2>
-<div class="panel"><div class="tree">brainoware-reservoir-lab/
+<div class="panel"><div class="tree">skxdded.github.io/
 ├─ index.html          <em>this page</em>
 ├─ css/style.css
 ├─ js/
-│  ├─ core.js          <em>the experiment: reservoir, readout, tests</em>
+│  ├─ core.js          <em>the experiment: reservoir, readout</em>
 │  ├─ worker.js        <em>runs it off the main thread</em>
 │  └─ app.js           <em>terminal, charts, inspector</em>
-├─ data/               <em>put ae.train and ae.test here</em>
-└─ experiment/
-   ├─ reservoir_vowels.py   <em>the original Python version</em>
-   └─ requirements.txt</div></div>
-  <pre>python reservoir_vowels.py --noise      # Python version (in experiment/)
+├─ data/               <em>ae.train and ae.test for this page</em>
+├─ experiment/         <em>clean copy of the Python version</em>
+└─ THEBUILD/           <em>my original build: the run behind my article</em>
+   ├─ brainowareBuild/ <em>the Python script I ran</em>
+   ├─ results.csv
+   └─ accuracy_vs_size.png</div></div>
+  <pre>python THEBUILD\brainowareBuild\reservoir_vowels.py --noise   # Python version
 python -m http.server                  # then open http://localhost:8000</pre>
 </section>
 </main>
