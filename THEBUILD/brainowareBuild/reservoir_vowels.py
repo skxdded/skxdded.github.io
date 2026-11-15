@@ -71,7 +71,7 @@ def load_synthetic(seed=0):
 # ---------------------------------------------------------------- reservoir
 class Reservoir:
     """x_t = (1-a) x_{t-1} + a * tanh(W_in u_t + W x_{t-1}); W and W_in are random and FIXED."""
-    def __init__(self, n_in, n_units, spectral_radius=0.9, input_scale=1.0,
+    def __init__(self, n_in, n_units, spectral_radius=0.5, input_scale=1.0,
                  leak=0.5, density=0.1, seed=0):
         rng = np.random.default_rng(seed)
         self.W_in = rng.uniform(-input_scale, input_scale, size=(n_units, n_in))
